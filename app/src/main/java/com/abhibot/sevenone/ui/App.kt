@@ -1,27 +1,45 @@
 package com.abhibot.sevenone.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.ShowChart
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.abhibot.sevenone.data.DhanCredentialsStore
@@ -30,15 +48,14 @@ import com.abhibot.sevenone.data.MarketRepository
 import com.abhibot.sevenone.data.SecureApiKeyStore
 import kotlinx.coroutines.launch
 
-private val Bg = Color(0xFF0B0F14)
-private val Panel = Color(0xFF121821)
-private val Panel2 = Color(0xFF171F2A)
-private val Text = Color(0xFFF4F7FA)
-private val Muted = Color(0xFF8E9AA8)
+private val Bg = Color(0xFF080C12)
+private val Panel = Color(0xFF111824)
+private val Panel2 = Color(0xFF182230)
+private val White = Color(0xFFF4F7FB)
+private val Muted = Color(0xFF8D99A8)
+private val Blue = Color(0xFF4F8CFF)
 private val Green = Color(0xFF22C55E)
 private val Red = Color(0xFFEF4444)
-private val Blue = Color(0xFF4F8CFF)
-private val Border = Color(0xFF26313D)
 
 @Composable
 fun AbhiBoTTheme(
@@ -49,15 +66,14 @@ fun AbhiBoTTheme(
             background = Bg,
             surface = Panel,
             primary = Blue,
-            onBackground = Text,
-            onSurface = Text
+            onBackground = White,
+            onSurface = White
         ),
         content = content
     )
 }
 
 private enum class Screen {
-    Login,
     Home,
     Markets,
     Trade,
@@ -71,12 +87,13 @@ fun AbhiBoTApp(
     repository: MarketRepository,
     keyStore: SecureApiKeyStore
 ) {
-    var screen by remember {
-        mutableStateOf(Screen.Login)
-    }
 
     var loggedIn by remember {
         mutableStateOf(false)
+    }
+
+    var screen by remember {
+        mutableStateOf(Screen.Home)
     }
 
     if (!loggedIn) {
@@ -86,7 +103,8 @@ fun AbhiBoTApp(
                 loggedIn = true
                 screen = Screen.Home
             },
-            onApi = {
+            onConnections = {
+                loggedIn = true
                 screen = Screen.Connections
             }
         )
@@ -103,46 +121,35 @@ fun AbhiBoTApp(
                 containerColor = Panel
             ) {
 
-                listOf(
+                val tabs = listOf(
                     Screen.Home to "Home",
                     Screen.Markets to "Markets",
                     Screen.Trade to "Trade",
                     Screen.Orders to "Orders",
                     Screen.Profile to "Profile"
-                ).forEach { (s, label) ->
+                )
+
+                tabs.forEach { (target, label) ->
 
                     NavigationBarItem(
-
-                        selected = screen == s,
+                        selected = screen == target,
 
                         onClick = {
-                            screen = s
+                            screen = target
                         },
 
                         icon = {
 
-                            Icon(
-                                imageVector = when (s) {
-
-                                    Screen.Home ->
-                                        Icons.Default.Home
-
-                                    Screen.Markets ->
-                                        Icons.Default.ShowChart
-
-                                    Screen.Trade ->
-                                        Icons.Default.AddCircle
-
-                                    Screen.Orders ->
-                                        Icons.Default.List
-
-                                    Screen.Profile ->
-                                        Icons.Default.Person
-
-                                    else ->
-                                        Icons.Default.Home
+                            Text(
+                                when (target) {
+                                    Screen.Home -> "⌂"
+                                    Screen.Markets -> "⌁"
+                                    Screen.Trade -> "+"
+                                    Screen.Orders -> "☷"
+                                    Screen.Profile -> "●"
+                                    else -> "•"
                                 },
-                                contentDescription = label
+                                fontSize = 20.sp
                             )
                         },
 
@@ -151,34 +158,15 @@ fun AbhiBoTApp(
                                 label,
                                 fontSize = 10.sp
                             )
-                        },
-
-                        colors =
-                            NavigationBarItemDefaults.colors(
-                                selectedIconColor =
-                                    Color.White,
-
-                                selectedTextColor =
-                                    Color.White,
-
-                                indicatorColor =
-                                    Blue,
-
-                                unselectedIconColor =
-                                    Muted,
-
-                                unselectedTextColor =
-                                    Muted
-                            )
+                        }
                     )
                 }
             }
         }
-
-    ) { pad ->
+    ) { padding ->
 
         Box(
-            Modifier.padding(pad)
+            Modifier.padding(padding)
         ) {
 
             when (screen) {
@@ -187,8 +175,13 @@ fun AbhiBoTApp(
 
                     HomeScreen(
                         onConnections = {
-                            screen =
-                                Screen.Connections
+                            screen = Screen.Connections
+                        },
+                        onMarkets = {
+                            screen = Screen.Markets
+                        },
+                        onTrade = {
+                            screen = Screen.Trade
                         }
                     )
                 }
@@ -196,8 +189,8 @@ fun AbhiBoTApp(
                 Screen.Markets -> {
 
                     MarketsScreen(
-                        repository,
-                        keyStore
+                        repository = repository,
+                        keyStore = keyStore
                     )
                 }
 
@@ -215,13 +208,11 @@ fun AbhiBoTApp(
 
                     ProfileScreen(
                         onConnections = {
-                            screen =
-                                Screen.Connections
+                            screen = Screen.Connections
                         },
-
                         onLogout = {
                             loggedIn = false
-                            screen = Screen.Login
+                            screen = Screen.Home
                         }
                     )
                 }
@@ -229,209 +220,176 @@ fun AbhiBoTApp(
                 Screen.Connections -> {
 
                     ConnectionsScreen(
-                        repository,
-                        keyStore
+                        repository = repository,
+                        keyStore = keyStore
                     )
                 }
-
-                else -> Unit
             }
         }
     }
 }
 
 
-/* ------------------------------------------------ */
-/* LOGIN */
-/* ------------------------------------------------ */
+/* =========================================================
+   LOGIN
+   ========================================================= */
 
 @Composable
 private fun LoginScreen(
     onLogin: () -> Unit,
-    onApi: () -> Unit
+    onConnections: () -> Unit
 ) {
 
-    var user by remember {
+    var username by remember {
         mutableStateOf("")
     }
 
-    var pass by remember {
+    var password by remember {
         mutableStateOf("")
     }
 
     Column(
-        Modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(Bg)
-            .padding(20.dp),
+            .padding(22.dp),
 
-        horizontalAlignment =
-            Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         Spacer(
-            Modifier.height(48.dp)
+            Modifier.height(55.dp)
         )
 
-        Row(
-            verticalAlignment =
-                Alignment.Bottom
-        ) {
-
-            Text(
-                "AbhiBoT",
-                color = Text,
-                fontSize = 34.sp,
-                fontWeight =
-                    FontWeight.Bold
-            )
-
-            Text(
-                " 7.1",
-                color = Blue,
-                fontSize = 18.sp,
-                fontWeight =
-                    FontWeight.Bold
-            )
-        }
+        Text(
+            text = "AbhiBoT",
+            fontSize = 36.sp,
+            fontWeight = FontWeight.Bold,
+            color = White
+        )
 
         Text(
-            "ADVANCED VIRTUAL TRADING",
-            color = Muted,
-            fontSize = 10.sp
+            text = "7.1  •  ADVANCED VIRTUAL TRADING",
+            color = Blue,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold
         )
 
         Spacer(
-            Modifier.height(40.dp)
+            Modifier.height(35.dp)
         )
 
         Card(
-            colors =
-                CardDefaults.cardColors(
-                    Panel
-                ),
-
-            shape =
-                RoundedCornerShape(20.dp)
+            colors = CardDefaults.cardColors(
+                containerColor = Panel
+            ),
+            shape = RoundedCornerShape(22.dp)
         ) {
 
             Column(
-                Modifier.padding(18.dp)
+                Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
             ) {
 
                 Text(
-                    "Welcome back",
-                    fontSize = 20.sp,
-                    fontWeight =
-                        FontWeight.Bold
+                    text = "Welcome back",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
                 )
 
                 Text(
-                    "Sign in to your paper-trading account",
+                    text = "Login to your paper-trading workspace",
                     color = Muted,
-                    fontSize = 11.sp
+                    fontSize = 12.sp
                 )
             }
         }
-
-        Spacer(
-            Modifier.height(22.dp)
-        )
-
-        OutlinedTextField(
-            value = user,
-            onValueChange = {
-                user = it
-            },
-
-            label = {
-                Text("Email / Username")
-            },
-
-            singleLine = true,
-
-            modifier =
-                Modifier.fillMaxWidth()
-        )
-
-        Spacer(
-            Modifier.height(12.dp)
-        )
-
-        OutlinedTextField(
-            value = pass,
-            onValueChange = {
-                pass = it
-            },
-
-            label = {
-                Text("Password")
-            },
-
-            singleLine = true,
-
-            visualTransformation =
-                PasswordVisualTransformation(),
-
-            modifier =
-                Modifier.fillMaxWidth()
-        )
 
         Spacer(
             Modifier.height(18.dp)
         )
 
+        OutlinedTextField(
+            value = username,
+            onValueChange = {
+                username = it
+            },
+            label = {
+                Text("Username / Email")
+            },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(
+            Modifier.height(10.dp)
+        )
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = {
+                password = it
+            },
+            label = {
+                Text("Password")
+            },
+            singleLine = true,
+            visualTransformation =
+                PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(
+            Modifier.height(16.dp)
+        )
+
         Button(
             onClick = onLogin,
 
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
 
-            shape =
-                RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(15.dp)
         ) {
 
             Text(
-                "LOGIN TO ABHIBOT",
-                fontWeight =
-                    FontWeight.Bold
+                "LOGIN",
+                fontWeight = FontWeight.Bold
             )
         }
 
         Spacer(
-            Modifier.height(14.dp)
+            Modifier.height(10.dp)
         )
 
         OutlinedButton(
-            onClick = onApi,
+            onClick = onConnections,
 
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
         ) {
 
             Text(
-                "API / BROKER LOGIN"
+                "API / BROKER CONNECTIONS"
             )
         }
 
         Spacer(
-            Modifier.height(28.dp)
+            Modifier.height(25.dp)
         )
 
         Text(
-            "Paper Trading is ON by default",
+            "PAPER TRADING",
             color = Green,
-            fontWeight =
-                FontWeight.Bold,
+            fontWeight = FontWeight.Bold,
             fontSize = 12.sp
         )
 
         Text(
-            "No real order is placed in this mode.",
+            "Real broker orders are disabled in this mode.",
             color = Muted,
             fontSize = 10.sp
         )
@@ -439,41 +397,43 @@ private fun LoginScreen(
 }
 
 
-/* ------------------------------------------------ */
-/* HOME */
-/* ------------------------------------------------ */
+/* =========================================================
+   HOME
+   ========================================================= */
 
 @Composable
 private fun HomeScreen(
-    onConnections: () -> Unit
+    onConnections: () -> Unit,
+    onMarkets: () -> Unit,
+    onTrade: () -> Unit
 ) {
 
     Column(
-        Modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(Bg)
-            .padding(20.dp)
+            .verticalScroll(
+                rememberScrollState()
+            )
+            .padding(18.dp)
     ) {
 
         Header(
-            "AbhiBoT 7.1",
-            "PAPER TRADING • NSE"
+            title = "AbhiBoT 7.1",
+            subtitle = "ADVANCED PAPER TRADING"
         )
 
         Card(
-            colors =
-                CardDefaults.cardColors(
-                    Panel
-                ),
-
-            shape =
-                RoundedCornerShape(20.dp)
+            colors = CardDefaults.cardColors(
+                containerColor = Panel
+            ),
+            shape = RoundedCornerShape(22.dp)
         ) {
 
             Column(
                 Modifier
-                    .padding(18.dp)
                     .fillMaxWidth()
+                    .padding(20.dp)
             ) {
 
                 Text(
@@ -484,86 +444,104 @@ private fun HomeScreen(
 
                 Text(
                     "₹1,00,000.00",
-                    fontSize = 28.sp,
-                    fontWeight =
-                        FontWeight.Bold
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold
                 )
 
                 Text(
-                    "+₹2,840.50  +2.91% Today",
+                    "Today  +₹2,840.50  (+2.91%)",
                     color = Green,
-                    fontSize = 12.sp,
-                    fontWeight =
-                        FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
                 )
             }
-        }
-
-        Spacer(
-            Modifier.height(20.dp)
-        )
-
-        Text(
-            "Market Overview",
-            fontSize = 17.sp,
-            fontWeight =
-                FontWeight.Bold
-        )
-
-        Spacer(
-            Modifier.height(8.dp)
-        )
-
-        listOf(
-            "NIFTY 50" to "24,836.20",
-            "BANK NIFTY" to "56,412.45",
-            "SENSEX" to "81,986.12"
-        ).forEach {
-
-            MarketRow(
-                it.first,
-                it.second,
-
-                if (
-                    it.first == "SENSEX"
-                )
-                    "-0.18%"
-                else
-                    "+0.72%"
-            )
         }
 
         Spacer(
             Modifier.height(18.dp)
         )
 
-        Button(
-            onClick = onConnections,
+        Text(
+            "Market Overview",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
+        )
 
-            modifier =
-                Modifier.fillMaxWidth()
+        Spacer(
+            Modifier.height(8.dp)
+        )
+
+        MarketRow(
+            "NIFTY 50",
+            "24,836.20",
+            "+0.72%"
+        )
+
+        MarketRow(
+            "BANK NIFTY",
+            "56,412.45",
+            "+0.48%"
+        )
+
+        MarketRow(
+            "SENSEX",
+            "81,986.12",
+            "-0.18%"
+        )
+
+        Spacer(
+            Modifier.height(18.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+
+            horizontalArrangement =
+                Arrangement.spacedBy(10.dp)
         ) {
 
-            Icon(
-                Icons.Default.Settings,
-                contentDescription = null
-            )
+            Button(
+                onClick = onMarkets,
+                modifier = Modifier.weight(1f)
+            ) {
 
-            Spacer(
-                Modifier.width(8.dp)
-            )
+                Text("MARKETS")
+            }
+
+            Button(
+                onClick = onTrade,
+                modifier = Modifier.weight(1f),
+
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = Green
+                    )
+            ) {
+
+                Text("TRADE")
+            }
+        }
+
+        Spacer(
+            Modifier.height(10.dp)
+        )
+
+        OutlinedButton(
+            onClick = onConnections,
+            modifier = Modifier.fillMaxWidth()
+        ) {
 
             Text(
-                "API & LIVE DATA CONNECTIONS"
+                "LIVE DATA & BROKERS"
             )
         }
     }
 }
 
 
-/* ------------------------------------------------ */
-/* MARKETS */
-/* ------------------------------------------------ */
+/* =========================================================
+   MARKETS
+   ========================================================= */
 
 @Composable
 private fun MarketsScreen(
@@ -575,29 +553,30 @@ private fun MarketsScreen(
         mutableStateOf("AAPL")
     }
 
-    var quote by remember {
-        mutableStateOf<Double?>(null)
+    var status by remember {
+        mutableStateOf("Ready")
     }
 
-    var status by remember {
-        mutableStateOf(
-            "Add your API key in Connections"
-        )
+    var price by remember {
+        mutableStateOf<Double?>(null)
     }
 
     val scope =
         rememberCoroutineScope()
 
     Column(
-        Modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(Bg)
-            .padding(20.dp)
+            .verticalScroll(
+                rememberScrollState()
+            )
+            .padding(18.dp)
     ) {
 
         Header(
             "Markets",
-            "LIVE / API DATA"
+            "TWELVE DATA REST"
         )
 
         OutlinedTextField(
@@ -608,13 +587,13 @@ private fun MarketsScreen(
             },
 
             label = {
-                Text("Provider symbol")
+                Text("Symbol")
             },
 
-            modifier =
-                Modifier.fillMaxWidth(),
+            singleLine = true,
 
-            singleLine = true
+            modifier =
+                Modifier.fillMaxWidth()
         )
 
         Spacer(
@@ -624,41 +603,39 @@ private fun MarketsScreen(
         Button(
             onClick = {
 
-                val key =
+                val apiKey =
                     keyStore.read()
 
-                if (key.isNullOrBlank()) {
+                if (apiKey.isNullOrBlank()) {
 
                     status =
-                        "API key not configured"
+                        "Add Twelve Data API key in Connections"
 
                 } else {
 
                     scope.launch {
 
                         status =
-                            "Updating…"
+                            "Updating..."
 
                         repository
                             .getPrice(
                                 symbol.trim(),
-                                key
+                                apiKey
                             )
-
                             .onSuccess {
 
-                                quote =
+                                price =
                                     it.price
 
                                 status =
-                                    "Updated from Twelve Data"
+                                    "Live REST quote updated"
                             }
-
                             .onFailure {
 
                                 status =
                                     it.message
-                                        ?: "Update failed"
+                                        ?: "Request failed"
                             }
                     }
                 }
@@ -674,15 +651,15 @@ private fun MarketsScreen(
         }
 
         Spacer(
-            Modifier.height(18.dp)
+            Modifier.height(15.dp)
         )
 
-        quote?.let {
+        if (price != null) {
 
             Card(
                 colors =
                     CardDefaults.cardColors(
-                        Panel
+                        containerColor = Panel
                     ),
 
                 shape =
@@ -690,51 +667,86 @@ private fun MarketsScreen(
             ) {
 
                 Column(
-                    Modifier.padding(18.dp)
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(18.dp)
                 ) {
 
                     Text(
                         symbol.uppercase(),
                         color = Muted,
-                        fontSize = 11.sp
+                        fontSize = 12.sp
                     )
 
                     Text(
-                        "%.2f".format(it),
-                        fontSize = 28.sp,
-                        fontWeight =
-                            FontWeight.Bold
+                        "%.2f".format(price),
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Bold
                     )
 
                     Text(
                         status,
                         color = Green,
-                        fontSize = 10.sp
+                        fontSize = 11.sp
                     )
                 }
             }
 
-        } ?: Text(
-            status,
-            color = Muted,
-            fontSize = 11.sp
+        } else {
+
+            Text(
+                status,
+                color = Muted,
+                fontSize = 12.sp
+            )
+        }
+
+        Spacer(
+            Modifier.height(20.dp)
+        )
+
+        Text(
+            "Indian Indices",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        MarketRow(
+            "NIFTY 50",
+            "Dhan Live Feed",
+            "IDX_I / 13"
+        )
+
+        MarketRow(
+            "BANK NIFTY",
+            "Dhan Live Feed",
+            "IDX_I / 25"
+        )
+
+        MarketRow(
+            "SENSEX",
+            "Dhan Live Feed",
+            "IDX_I / 51"
         )
     }
 }
 
 
-/* ------------------------------------------------ */
-/* PAPER TRADE */
-/* ------------------------------------------------ */
+/* =========================================================
+   TRADE
+   ========================================================= */
 
 @Composable
 private fun TradeScreen() {
 
     Column(
-        Modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(Bg)
-            .padding(20.dp)
+            .verticalScroll(
+                rememberScrollState()
+            )
+            .padding(18.dp)
     ) {
 
         Header(
@@ -742,41 +754,50 @@ private fun TradeScreen() {
             "PAPER ORDER"
         )
 
-        Card(
-            colors =
-                CardDefaults.cardColors(
-                    Panel
-                ),
-
-            shape =
-                RoundedCornerShape(18.dp)
-        ) {
-
-            Column(
-                Modifier.padding(18.dp)
-            ) {
-
-                Text(
-                    "NIFTY 50",
-                    fontWeight =
-                        FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-
-                Text(
-                    "24,836.20",
-                    color = Muted,
-                    fontSize = 12.sp
-                )
-            }
-        }
+        OutlinedTextField(
+            value = "NIFTY 50",
+            onValueChange = {},
+            label = {
+                Text("Symbol")
+            },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
 
         Spacer(
-            Modifier.height(18.dp)
+            Modifier.height(10.dp)
+        )
+
+        OutlinedTextField(
+            value = "50",
+            onValueChange = {},
+            label = {
+                Text("Quantity")
+            },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        Spacer(
+            Modifier.height(10.dp)
+        )
+
+        OutlinedTextField(
+            value = "24836.20",
+            onValueChange = {},
+            label = {
+                Text("Entry Price")
+            },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        Spacer(
+            Modifier.height(15.dp)
         )
 
         Row(
-            Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
 
             horizontalArrangement =
                 Arrangement.spacedBy(10.dp)
@@ -814,92 +835,657 @@ private fun TradeScreen() {
         }
 
         Spacer(
+            Modifier.height(15.dp)
+        )
+
+        Text(
+            "Paper order preview",
+            color = Muted,
+            fontSize = 12.sp
+        )
+
+        Text(
+            "No broker order will be submitted.",
+            color = White,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+
+/* =========================================================
+   ORDERS
+   ========================================================= */
+
+@Composable
+private fun OrdersScreen() {
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Bg)
+            .padding(18.dp)
+    ) {
+
+        Header(
+            "Orders & Positions",
+            "PAPER TRADING"
+        )
+
+        Card(
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = Panel
+                ),
+
+            shape =
+                RoundedCornerShape(18.dp)
+        ) {
+
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            ) {
+
+                Text(
+                    "No open positions",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp
+                )
+
+                Text(
+                    "Your paper trades will appear here.",
+                    color = Muted,
+                    fontSize = 12.sp
+                )
+            }
+        }
+    }
+}
+
+
+/* =========================================================
+   PROFILE
+   ========================================================= */
+
+@Composable
+private fun ProfileScreen(
+    onConnections: () -> Unit,
+    onLogout: () -> Unit
+) {
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Bg)
+            .verticalScroll(
+                rememberScrollState()
+            )
+            .padding(18.dp)
+    ) {
+
+        Header(
+            "Profile",
+            "ACCOUNT"
+        )
+
+        Card(
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = Panel
+                ),
+
+            shape =
+                RoundedCornerShape(20.dp)
+        ) {
+
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            ) {
+
+                Text(
+                    "AbhiBoT Trader",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    "Virtual account • ₹1,00,000",
+                    color = Muted,
+                    fontSize = 12.sp
+                )
+            }
+        }
+
+        Spacer(
             Modifier.height(14.dp)
         )
 
-        OutlinedTextField(
-            value = "50",
-            onValueChange = {},
-
-            label = {
-                Text("Quantity")
-            },
-
-            modifier =
-                Modifier.fillMaxWidth()
-        )
-
-        Spacer(
-            Modifier.height(10.dp)
-        )
-
-        OutlinedTextField(
-            value = "24,836.20",
-            onValueChange = {},
-
-            label = {
-                Text("Entry Price")
-            },
-
-            modifier =
-                Modifier.fillMaxWidth()
-        )
-
-        Spacer(
-            Modifier.height(10.dp)
-        )
-
-        OutlinedTextField(
-            value = "24,700",
-            onValueChange = {},
-
-            label = {
-                Text("Stop Loss")
-            },
-
-            modifier =
-                Modifier.fillMaxWidth()
-        )
-
-        Spacer(
-            Modifier.height(10.dp)
-        )
-
-        OutlinedTextField(
-            value = "25,108.60",
-            onValueChange = {},
-
-            label = {
-                Text("Target")
-            },
-
-            modifier =
-                Modifier.fillMaxWidth()
-        )
-
-        Spacer(
-            Modifier.height(18.dp)
-        )
-
-        Button(
-            onClick = {},
-
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
+        OutlinedButton(
+            onClick = onConnections,
+            modifier = Modifier.fillMaxWidth()
         ) {
 
             Text(
-                "PLACE PAPER ORDER",
-                fontWeight =
-                    FontWeight.Bold
+                "CONNECTION SETTINGS"
+            )
+        }
+
+        Spacer(
+            Modifier.height(10.dp)
+        )
+
+        Button(
+            onClick = onLogout,
+
+            modifier =
+                Modifier.fillMaxWidth(),
+
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = Red
+                )
+        ) {
+
+            Text(
+                "LOG OUT"
             )
         }
     }
 }
 
 
-/* ------------------------------------------------ */
-/* ORDERS */
-/* ----------------------------------
+/* =========================================================
+   CONNECTIONS
+   ========================================================= */
+
+@Composable
+private fun ConnectionsScreen(
+    repository: MarketRepository,
+    keyStore: SecureApiKeyStore
+) {
+
+    val context =
+        LocalContext.current
+
+    val dhanStore =
+        remember {
+            DhanCredentialsStore(context)
+        }
+
+    val feed =
+        remember {
+            DhanMarketFeed()
+        }
+
+    val feedStatus by
+        feed.status.collectAsState()
+
+    val quotes by
+        feed.quotes.collectAsState()
+
+    var twelveKey by remember {
+
+        mutableStateOf(
+            keyStore.read() ?: ""
+        )
+    }
+
+    var clientId by remember {
+
+        mutableStateOf(
+            dhanStore.getClientId() ?: ""
+        )
+    }
+
+    var accessToken by remember {
+
+        mutableStateOf(
+            dhanStore.getAccessToken() ?: ""
+        )
+    }
+
+    var message by remember {
+        mutableStateOf("")
+    }
+
+    DisposableEffect(Unit) {
+
+        onDispose {
+            feed.disconnect()
+        }
+    }
+
+    val instruments =
+        listOf(
+            "NIFTY 50" to "13",
+            "BANK NIFTY" to "25",
+            "SENSEX" to "51"
+        )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Bg)
+            .verticalScroll(
+                rememberScrollState()
+            )
+            .padding(18.dp)
+    ) {
+
+        Header(
+            "Connections",
+            "LIVE MARKET DATA + BROKERS"
+        )
+
+        /* DATA STREAM */
+
+        Card(
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = Panel
+                ),
+
+            shape =
+                RoundedCornerShape(18.dp)
+        ) {
+
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(18.dp)
+            ) {
+
+                Text(
+                    "● DATA STREAM",
+                    color = Blue,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(
+                    Modifier.height(5.dp)
+                )
+
+                Text(
+                    feedStatus,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    "Dhan WebSocket • Live Market Feed",
+                    color = Muted,
+                    fontSize = 11.sp
+                )
+            }
+        }
+
+        Spacer(
+            Modifier.height(20.dp)
+        )
+
+        /* TWELVE DATA */
+
+        Text(
+            "Twelve Data API Key",
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(
+            Modifier.height(7.dp)
+        )
+
+        OutlinedTextField(
+            value = twelveKey,
+
+            onValueChange = {
+                twelveKey = it
+            },
+
+            label = {
+                Text("API Key")
+            },
+
+            modifier =
+                Modifier.fillMaxWidth(),
+
+            singleLine = true,
+
+            visualTransformation =
+                PasswordVisualTransformation()
+        )
+
+        Spacer(
+            Modifier.height(8.dp)
+        )
+
+        Button(
+            onClick = {
+
+                if (twelveKey.isBlank()) {
+
+                    message =
+                        "Please enter Twelve Data API key"
+
+                } else {
+
+                    keyStore.save(
+                        twelveKey.trim()
+                    )
+
+                    message =
+                        "Twelve Data API key saved securely"
+                }
+            },
+
+            modifier =
+                Modifier.fillMaxWidth()
+        ) {
+
+            Text(
+                "SAVE SECURELY"
+            )
+        }
+
+        Spacer(
+            Modifier.height(22.dp)
+        )
+
+        /* DHAN */
+
+        Text(
+            "Dhan Connection",
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(
+            Modifier.height(7.dp)
+        )
+
+        OutlinedTextField(
+            value = clientId,
+
+            onValueChange = {
+                clientId = it
+            },
+
+            label = {
+                Text("Dhan Client ID")
+            },
+
+            modifier =
+                Modifier.fillMaxWidth(),
+
+            singleLine = true
+        )
+
+        Spacer(
+            Modifier.height(10.dp)
+        )
+
+        OutlinedTextField(
+            value = accessToken,
+
+            onValueChange = {
+                accessToken = it
+            },
+
+            label = {
+                Text("Dhan Access Token")
+            },
+
+            modifier =
+                Modifier.fillMaxWidth(),
+
+            singleLine = true,
+
+            visualTransformation =
+                PasswordVisualTransformation()
+        )
+
+        Spacer(
+            Modifier.height(10.dp)
+        )
+
+        Button(
+            onClick = {
+
+                if (
+                    clientId.isBlank() ||
+                    accessToken.isBlank()
+                ) {
+
+                    message =
+                        "Client ID and Access Token are required"
+
+                } else {
+
+                    dhanStore.saveCredentials(
+                        clientId,
+                        accessToken
+                    )
+
+                    feed.connect(
+                        clientId = clientId.trim(),
+                        accessToken = accessToken.trim(),
+
+                        instruments =
+                            instruments.map {
+                                "IDX_I" to it.second
+                            }
+                    )
+
+                    message =
+                        "Dhan credentials saved. Connecting..."
+                }
+            },
+
+            modifier =
+                Modifier.fillMaxWidth()
+        ) {
+
+            Text(
+                "SAVE & CONNECT DHAN"
+            )
+        }
+
+        Spacer(
+            Modifier.height(8.dp)
+        )
+
+        OutlinedButton(
+            onClick = {
+
+                feed.disconnect()
+
+                message =
+                    "Dhan feed disconnected"
+            },
+
+            modifier =
+                Modifier.fillMaxWidth()
+        ) {
+
+            Text(
+                "DISCONNECT DHAN"
+            )
+        }
+
+        Spacer(
+            Modifier.height(22.dp)
+        )
+
+        /* LIVE QUOTES */
+
+        Text(
+            "Live Quotes",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(
+            Modifier.height(5.dp)
+        )
+
+        instruments.forEach { (name, id) ->
+
+            val quote =
+                quotes[id]
+
+            MarketRow(
+                name = name,
+
+                value =
+                    quote?.price?.let {
+                        "%.2f".format(it)
+                    } ?: "--",
+
+                change =
+                    if (quote == null)
+                        "WAITING"
+                    else
+                        "LIVE"
+            )
+        }
+
+        Spacer(
+            Modifier.height(10.dp)
+        )
+
+        if (message.isNotBlank()) {
+
+            Text(
+                message,
+                color = Green,
+                fontSize = 11.sp
+            )
+        }
+
+        Spacer(
+            Modifier.height(10.dp)
+        )
+
+        Text(
+            "Credentials are encrypted using Android Keystore. Never commit real API keys or tokens to GitHub.",
+            color = Muted,
+            fontSize = 10.sp
+        )
+    }
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+@Composable
+private fun Header(
+    title: String,
+    subtitle: String
+) {
+
+    Column(
+        Modifier.padding(
+            bottom = 16.dp
+        )
+    ) {
+
+        Text(
+            title,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = White
+        )
+
+        Text(
+            subtitle,
+            color = Muted,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+
+/* =========================================================
+   MARKET ROW
+   ========================================================= */
+
+@Composable
+private fun MarketRow(
+    name: String,
+    value: String,
+    change: String
+) {
+
+    Card(
+        colors =
+            CardDefaults.cardColors(
+                containerColor = Panel2
+            ),
+
+        shape =
+            RoundedCornerShape(16.dp),
+
+        modifier =
+            Modifier.padding(
+                vertical = 4.dp
+            )
+    ) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = 16.dp,
+                    vertical = 14.dp
+                ),
+
+            verticalAlignment =
+                Alignment.CenterVertically
+        ) {
+
+            Column(
+                Modifier.weight(1f)
+            ) {
+
+                Text(
+                    name,
+                    fontWeight =
+                        FontWeight.Bold
+                )
+
+                Text(
+                    value,
+                    color = Muted,
+                    fontSize = 11.sp
+                )
+            }
+
+            Text(
+                change,
+
+                color =
+                    if (change.startsWith("-"))
+                        Red
+                    else if (
+                        change == "LIVE"
+                    )
+                        Green
+                    else
+                        Blue,
+
+                fontWeight =
+                    FontWeight.Bold,
+
+                fontSize = 11.sp
+            )
+        }
+    }
+}
