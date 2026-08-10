@@ -16,15 +16,29 @@ android {
         versionName = "7.1"
     }
 
-    buildFeatures { compose = true }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        compose = true
+    }
 
     packaging {
-        resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
     }
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.12.01")
+
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
